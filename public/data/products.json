@@ -138,19 +138,5 @@
         "price": 0.5
       }
     ]
-  },
-  {
-    "id": "basil",
-    "name": "Basil",
-    "description": "Basil",
-    "image": "images/products/1772292970915.jpg",
-    "options": [
-      {
-        "id": "large",
-        "label": "Large",
-        "pieces": 5,
-        "price": 2.5
-      }
-    ]
   }
 ]
