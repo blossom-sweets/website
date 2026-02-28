@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Blossom Sweets — Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --pink:#e0607e;--pink-light:#fdf2f5;--green:#25d366;
+  --bg:#f8f5f2;--surface:#fff;--text:#2a1f2d;--text2:#7a6b7d;
+  --border:#e8dde5;--radius:0.8rem;
+  --shadow:0 2px 12px rgba(0,0,0,0.06);
+}
+html{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text)}
+body{min-height:100vh;padding:0}
+
+/* ── Auth Screen ── */
+.auth-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1rem}
+.auth-card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:2rem;max-width:420px;width:100%;text-align:center}
+.auth-card h1{font-size:1.4rem;margin-bottom:0.3rem}
+.auth-card p{font-size:0.85rem;color:var(--text2);margin-bottom:1.2rem;line-height:1.5}
+.auth-card input{width:100%;padding:0.7rem 0.85rem;border:1.5px solid var(--border);border-radius:0.6rem;font-size:0.9rem;font-family:inherit;margin-bottom:0.7rem}
+.auth-card input:focus{outline:none;border-color:var(--pink)}
+.auth-card button{width:100%;padding:0.75rem;border:none;border-radius:0.6rem;background:var(--pink);color:#fff;font-weight:600;font-size:0.95rem;cursor:pointer;font-family:inherit}
+.auth-card button:hover{opacity:0.9}
+.auth-error{color:#c0392b;font-size:0.82rem;margin-top:0.5rem}
+
+/* ── Top Bar ── */
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0.7rem 1.2rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.topbar h1{font-size:1.1rem;display:flex;align-items:center;gap:0.4rem}
+.topbar-actions{display:flex;gap:0.5rem}
+.btn{padding:0.5rem 1rem;border:none;border-radius:0.55rem;font-size:0.82rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.2s}
+.btn-pink{background:var(--pink);color:#fff}
+.btn-pink:hover{opacity:0.9}
+.btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--text2)}
+.btn-outline:hover{border-color:var(--pink);color:var(--pink)}
+.btn-green{background:var(--green);color:#fff}
+.btn-danger{background:#e74c3c;color:#fff}
+.btn-danger:hover{opacity:0.9}
+.btn:disabled{opacity:0.5;cursor:not-allowed}
+
+/* ── Status Bar ── */
+.status-bar{padding:0.5rem 1.2rem;font-size:0.78rem;color:var(--text2);background:var(--pink-light);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.4rem}
+.status-bar.error{background:#fdecea;color:#c0392b}
+.status-bar.success{background:#e8f5e9;color:#2e7d32}
+
+/* ── Main Layout ── */
+.main{max-width:900px;margin:0 auto;padding:1rem}
+
+/* ── Products List ── */
+.products-list{display:grid;gap:0.7rem}
+.product-row{display:flex;align-items:center;gap:0.8rem;background:var(--surface);border-radius:var(--radius);padding:0.7rem;box-shadow:var(--shadow);cursor:pointer;transition:all 0.15s}
+.product-row:hover{box-shadow:0 4px 20px rgba(0,0,0,0.1)}
+.product-row img{width:60px;height:60px;object-fit:cover;border-radius:0.5rem;flex-shrink:0}
+.product-row .placeholder{width:60px;height:60px;background:var(--pink-light);border-radius:0.5rem;display:grid;place-items:center;font-size:1.5rem;flex-shrink:0}
+.product-row-info{flex:1;min-width:0}
+.product-row-info h3{font-size:0.92rem;font-weight:600}
+.product-row-info p{font-size:0.78rem;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.product-row-actions{display:flex;gap:0.35rem;flex-shrink:0}
+
+/* ── Editor Modal ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;display:flex;align-items:center;justify-content:center;padding:1rem}
+.modal{background:var(--surface);border-radius:var(--radius);width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,0.15)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.2rem;border-bottom:1px solid var(--border)}
+.modal-header h2{font-size:1.05rem}
+.modal-body{padding:1.2rem;display:grid;gap:0.8rem}
+.modal-footer{padding:0.8rem 1.2rem;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:0.5rem}
+
+.field label{display:block;font-size:0.8rem;font-weight:600;margin-bottom:0.25rem;color:var(--text2)}
+.field input,.field textarea,.field select{width:100%;padding:0.6rem 0.75rem;border:1.5px solid var(--border);border-radius:0.55rem;font-size:0.88rem;font-family:inherit}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--pink)}
+.field textarea{resize:vertical;min-height:60px}
+
+/* ── Image Upload ── */
+.img-upload{border:2px dashed var(--border);border-radius:var(--radius);padding:1rem;text-align:center;cursor:pointer;transition:all 0.2s;position:relative}
+.img-upload:hover{border-color:var(--pink);background:var(--pink-light)}
+.img-upload img{max-width:100%;max-height:140px;border-radius:0.5rem;margin-bottom:0.5rem}
+.img-upload p{font-size:0.8rem;color:var(--text2)}
+.img-upload input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer}
+
+/* ── Options & Extras Editor ── */
+.sub-section{border:1px solid var(--border);border-radius:0.6rem;padding:0.7rem;margin-top:0.3rem}
+.sub-section h4{font-size:0.82rem;font-weight:600;margin-bottom:0.4rem;display:flex;align-items:center;justify-content:space-between}
+.sub-row{display:flex;gap:0.4rem;align-items:center;margin-bottom:0.35rem}
+.sub-row input{flex:1;padding:0.4rem 0.55rem;border:1px solid var(--border);border-radius:0.4rem;font-size:0.8rem;font-family:inherit}
+.sub-row input:focus{outline:none;border-color:var(--pink)}
+.sub-row button{width:28px;height:28px;border:none;background:#fdecea;color:#c0392b;border-radius:0.35rem;cursor:pointer;font-size:0.85rem;flex-shrink:0}
+
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--text2)}
+.empty-state p{font-size:1rem;margin-bottom:0.5rem}
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid #ddd;border-top-color:var(--pink);border-radius:50%;animation:spin 0.6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:600px){
+  .topbar h1 span{display:none}
+  .product-row{flex-wrap:wrap}
+  .product-row-actions{width:100%;justify-content:flex-end}
+  .modal{max-height:95vh;border-radius:0.6rem 0.6rem 0 0;align-self:flex-end}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ AUTH SCREEN ═══════════════ -->
+<div id="auth-screen" class="auth-screen">
+  <div class="auth-card">
+    <h1>🍪 Admin Panel</h1>
+    <p>
+      Enter your GitHub Personal Access Token to manage products.<br/>
+      <a href="https://github.com/settings/tokens/new?scopes=repo&description=BlossomSweets+Admin" target="_blank" style="color:var(--pink);font-weight:600">
+        Generate token here →
+      </a>
+    </p>
+    <input id="token-input" type="password" placeholder="ghp_xxxxxxxxxxxx" autocomplete="off" />
+    <input id="repo-input" type="text" placeholder="owner/repo" value="basilalshukaili/blossomsweets" />
+    <button onclick="authenticate()">Sign In</button>
+    <div id="auth-error" class="auth-error" style="display:none"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ APP ═══════════════ -->
+<div id="app" style="display:none">
+  <div class="topbar">
+    <h1>🍪 <span>Blossom Sweets Admin</span></h1>
+    <div class="topbar-actions">
+      <button class="btn btn-pink" onclick="openEditor(null)">+ Add Product</button>
+      <button class="btn btn-outline" onclick="logout()">Sign Out</button>
+    </div>
+  </div>
+
+  <div id="status-bar" class="status-bar" style="display:none"></div>
+
+  <div class="main">
+    <div id="products-list" class="products-list"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ EDITOR MODAL ═══════════════ -->
+<div id="modal-overlay" class="modal-overlay" style="display:none" onclick="event.target===this&&closeEditor()">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modal-title">Add Product</h2>
+      <button class="btn btn-outline" onclick="closeEditor()" style="padding:0.3rem 0.6rem">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Image -->
+      <div class="field">
+        <label>Product Image</label>
+        <div class="img-upload" id="img-upload">
+          <img id="img-preview" style="display:none" />
+          <p id="img-text">Click or drag to upload image</p>
+          <input type="file" accept="image/*" onchange="handleImageSelect(event)" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Product Name</label>
+        <input id="ed-name" type="text" placeholder="e.g. Triple Biscoff" />
+      </div>
+
+      <div class="field">
+        <label>Description</label>
+        <textarea id="ed-desc" rows="2" placeholder="Short description…"></textarea>
+      </div>
+
+      <!-- Options -->
+      <div class="sub-section">
+        <h4>Size Options <button class="btn btn-outline" onclick="addOption()" style="padding:0.2rem 0.5rem;font-size:0.75rem">+ Add</button></h4>
+        <div id="options-list"></div>
+      </div>
+
+      <!-- Extras -->
+      <div class="sub-section">
+        <h4>Extras (Optional) <button class="btn btn-outline" onclick="addExtra()" style="padding:0.2rem 0.5rem;font-size:0.75rem">+ Add</button></h4>
+        <div id="extras-list"></div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeEditor()">Cancel</button>
+      <button class="btn btn-pink" id="save-btn" onclick="saveProduct()">Save Product</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════
+const PRODUCTS_PATH = "public/data/products.json";
+const IMAGES_DIR    = "public/images/products";
+const BRANCH        = "main";
+
+let TOKEN = "";
+let REPO  = "";
+let products = [];
+let editingIndex = -1;       // -1 = new product
+let editorImage = null;       // { file, base64, filename } | null
+let editorOptions = [];
+let editorExtras = [];
+let productsSha = "";         // SHA of products.json (needed for updates)
+
+// ═══════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════
+function authenticate() {
+  TOKEN = document.getElementById("token-input").value.trim();
+  REPO  = document.getElementById("repo-input").value.trim();
+  if (!TOKEN || !REPO) return showAuthError("Please fill in both fields.");
+
+  showAuthError("");
+  ghAPI(`/repos/${REPO}`).then(r => {
+    if (!r.ok) throw new Error("Repository not found or token invalid");
+    return r.json();
+  }).then(() => {
+    localStorage.setItem("bs_token", TOKEN);
+    localStorage.setItem("bs_repo", REPO);
+    showApp();
+  }).catch(e => showAuthError(e.message));
+}
+
+function logout() {
+  localStorage.removeItem("bs_token");
+  localStorage.removeItem("bs_repo");
+  TOKEN = ""; REPO = "";
+  document.getElementById("app").style.display = "none";
+  document.getElementById("auth-screen").style.display = "flex";
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById("auth-error");
+  el.textContent = msg;
+  el.style.display = msg ? "block" : "none";
+}
+
+// Auto-login
+(function autoLogin() {
+  const t = localStorage.getItem("bs_token");
+  const r = localStorage.getItem("bs_repo");
+  if (t && r) {
+    TOKEN = t; REPO = r;
+    document.getElementById("token-input").value = t;
+    document.getElementById("repo-input").value = r;
+    showApp();
+  }
+})();
+
+function showApp() {
+  document.getElementById("auth-screen").style.display = "none";
+  document.getElementById("app").style.display = "block";
+  loadProducts();
+}
+
+// ═══════════════════════════════════════════════
+// GITHUB API
+// ═══════════════════════════════════════════════
+function ghAPI(path, opts = {}) {
+  return fetch(`https://api.github.com${path}`, {
+    ...opts,
+    headers: {
+      Authorization: `Bearer ${TOKEN}`,
+      Accept: "application/vnd.github.v3+json",
+      "Content-Type": "application/json",
+      ...(opts.headers || {})
+    }
+  });
+}
+
+async function getFile(path) {
+  const r = await ghAPI(`/repos/${REPO}/contents/${path}?ref=${BRANCH}`);
+  if (!r.ok) return null;
+  return r.json();
+}
+
+async function putFile(path, content, message, sha = null) {
+  const body = {
+    message,
+    content: btoa(unescape(encodeURIComponent(content))),
+    branch: BRANCH
+  };
+  if (sha) body.sha = sha;
+
+  const r = await ghAPI(`/repos/${REPO}/contents/${path}`, {
+    method: "PUT",
+    body: JSON.stringify(body)
+  });
+  return r;
+}
+
+async function putBinaryFile(path, base64Content, message, sha = null) {
+  const body = {
+    message,
+    content: base64Content,
+    branch: BRANCH
+  };
+  if (sha) body.sha = sha;
+
+  const r = await ghAPI(`/repos/${REPO}/contents/${path}`, {
+    method: "PUT",
+    body: JSON.stringify(body)
+  });
+  return r;
+}
+
+async function deleteFile(path, sha, message) {
+  return ghAPI(`/repos/${REPO}/contents/${path}`, {
+    method: "DELETE",
+    body: JSON.stringify({ message, sha, branch: BRANCH })
+  });
+}
+
+// ═══════════════════════════════════════════════
+// LOAD PRODUCTS
+// ═══════════════════════════════════════════════
+async function loadProducts() {
+  setStatus("Loading products…", "");
+  try {
+    const file = await getFile(PRODUCTS_PATH);
+    if (!file) {
+      products = [];
+      productsSha = "";
+      setStatus("No products.json found — starting fresh.", "");
+    } else {
+      productsSha = file.sha;
+      products = JSON.parse(decodeURIComponent(escape(atob(file.content.replace(/\n/g, "")))));
+    }
+    renderProducts();
+    hideStatus();
+  } catch (e) {
+    setStatus("Error loading products: " + e.message, "error");
+  }
+}
+
+// ═══════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════
+function renderProducts() {
+  const el = document.getElementById("products-list");
+  if (!products.length) {
+    el.innerHTML = `<div class="empty-state"><p>🧁 No products yet</p><button class="btn btn-pink" onclick="openEditor(null)">Add Your First Product</button></div>`;
+    return;
+  }
+  el.innerHTML = products.map((p, i) => `
+    <div class="product-row" onclick="openEditor(${i})">
+      ${p.image
+        ? `<img src="https://raw.githubusercontent.com/${REPO}/${BRANCH}/${IMAGES_DIR}/${p.image.split('/').pop()}" alt="${p.name}" />`
+        : `<div class="placeholder">🍫</div>`}
+      <div class="product-row-info">
+        <h3>${p.name}</h3>
+        <p>${p.description || ""}</p>
+      </div>
+      <div class="product-row-actions" onclick="event.stopPropagation()">
+        <button class="btn btn-outline" onclick="openEditor(${i})">Edit</button>
+        <button class="btn btn-danger" onclick="deleteProduct(${i})" style="padding:0.4rem 0.7rem;font-size:0.78rem">Delete</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+// ═══════════════════════════════════════════════
+// EDITOR
+// ═══════════════════════════════════════════════
+function openEditor(index) {
+  editingIndex = index === null || index === undefined ? -1 : index;
+  editorImage = null;
+
+  const isNew = editingIndex === -1;
+  document.getElementById("modal-title").textContent = isNew ? "Add Product" : "Edit Product";
+
+  if (isNew) {
+    document.getElementById("ed-name").value = "";
+    document.getElementById("ed-desc").value = "";
+    editorOptions = [{ id: "large", label: "Large", pieces: 5, price: 2.5 }];
+    editorExtras = [];
+    document.getElementById("img-preview").style.display = "none";
+    document.getElementById("img-text").style.display = "block";
+  } else {
+    const p = products[editingIndex];
+    document.getElementById("ed-name").value = p.name || "";
+    document.getElementById("ed-desc").value = p.description || "";
+    editorOptions = JSON.parse(JSON.stringify(p.options || []));
+    editorExtras = JSON.parse(JSON.stringify(p.extras || []));
+
+    if (p.image) {
+      const imgEl = document.getElementById("img-preview");
+      imgEl.src = `https://raw.githubusercontent.com/${REPO}/${BRANCH}/${IMAGES_DIR}/${p.image.split('/').pop()}`;
+      imgEl.style.display = "block";
+      document.getElementById("img-text").style.display = "none";
+    } else {
+      document.getElementById("img-preview").style.display = "none";
+      document.getElementById("img-text").style.display = "block";
+    }
+  }
+
+  renderOptions();
+  renderExtras();
+  document.getElementById("modal-overlay").style.display = "flex";
+}
+
+function closeEditor() {
+  document.getElementById("modal-overlay").style.display = "none";
+  editorImage = null;
+}
+
+function handleImageSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const base64Full = e.target.result;
+    const base64Data = base64Full.split(",")[1];
+    const ext = file.name.split(".").pop().toLowerCase();
+
+    editorImage = { base64: base64Data, filename: `${Date.now()}.${ext}` };
+
+    const imgEl = document.getElementById("img-preview");
+    imgEl.src = base64Full;
+    imgEl.style.display = "block";
+    document.getElementById("img-text").style.display = "none";
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── Options ──
+function renderOptions() {
+  document.getElementById("options-list").innerHTML = editorOptions.map((o, i) => `
+    <div class="sub-row">
+      <input value="${o.label}" placeholder="Label" onchange="editorOptions[${i}].label=this.value;editorOptions[${i}].id=this.value.toLowerCase().replace(/\\s+/g,'-')" />
+      <input value="${o.pieces}" type="number" min="1" placeholder="Pcs" style="max-width:60px" onchange="editorOptions[${i}].pieces=+this.value" />
+      <input value="${o.price}" type="number" step="0.1" min="0" placeholder="Price" style="max-width:80px" onchange="editorOptions[${i}].price=+this.value" />
+      <button onclick="editorOptions.splice(${i},1);renderOptions()">✕</button>
+    </div>
+  `).join("") || '<p style="font-size:0.78rem;color:#999">No options — add at least one.</p>';
+}
+
+function addOption() {
+  editorOptions.push({ id: `opt-${Date.now()}`, label: "", pieces: 1, price: 0 });
+  renderOptions();
+}
+
+// ── Extras ──
+function renderExtras() {
+  document.getElementById("extras-list").innerHTML = editorExtras.map((e, i) => `
+    <div class="sub-row">
+      <input value="${e.label}" placeholder="Label" onchange="editorExtras[${i}].label=this.value;editorExtras[${i}].id=this.value.toLowerCase().replace(/\\s+/g,'-')" />
+      <input value="${e.price}" type="number" step="0.1" min="0" placeholder="Price" style="max-width:80px" onchange="editorExtras[${i}].price=+this.value" />
+      <button onclick="editorExtras.splice(${i},1);renderExtras()">✕</button>
+    </div>
+  `).join("") || '<p style="font-size:0.78rem;color:#999">No extras.</p>';
+}
+
+function addExtra() {
+  editorExtras.push({ id: `ext-${Date.now()}`, label: "", price: 0 });
+  renderExtras();
+}
+
+// ═══════════════════════════════════════════════
+// SAVE
+// ═══════════════════════════════════════════════
+async function saveProduct() {
+  const name = document.getElementById("ed-name").value.trim();
+  const desc = document.getElementById("ed-desc").value.trim();
+
+  if (!name) return alert("Product name is required.");
+  if (!editorOptions.length) return alert("Add at least one size option.");
+  for (const o of editorOptions) {
+    if (!o.label || o.price <= 0) return alert("Each option needs a label and price.");
+  }
+
+  const btn = document.getElementById("save-btn");
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Saving…';
+  setStatus("Saving product…", "");
+
+  try {
+    const isNew = editingIndex === -1;
+    const id = isNew
+      ? name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+$/, "")
+      : products[editingIndex].id;
+
+    let imagePath = isNew ? null : products[editingIndex].image;
+
+    // Upload image if new one selected
+    if (editorImage) {
+      const imgFilePath = `${IMAGES_DIR}/${editorImage.filename}`;
+      setStatus("Uploading image…", "");
+
+      // Check if file exists to get SHA
+      const existingImg = await getFile(imgFilePath);
+      const imgSha = existingImg ? existingImg.sha : null;
+
+      const imgRes = await putBinaryFile(
+        imgFilePath,
+        editorImage.base64,
+        `📸 ${isNew ? "Add" : "Update"} image for ${name}`,
+        imgSha
+      );
+
+      if (!imgRes.ok) throw new Error("Failed to upload image");
+      imagePath = `images/products/${editorImage.filename}`;
+    }
+
+    // Build product object
+    const product = { id, name, description: desc, image: imagePath, options: editorOptions };
+    if (editorExtras.length) product.extras = editorExtras;
+
+    // Update products array
+    if (isNew) {
+      products.push(product);
+    } else {
+      products[editingIndex] = product;
+    }
+
+    // Commit products.json
+    setStatus("Saving products.json…", "");
+    const jsonContent = JSON.stringify(products, null, 2) + "\n";
+
+    // Re-fetch SHA to avoid conflict
+    const currentFile = await getFile(PRODUCTS_PATH);
+    productsSha = currentFile ? currentFile.sha : null;
+
+    const res = await putFile(
+      PRODUCTS_PATH,
+      jsonContent,
+      `${isNew ? "➕ Add" : "✏️ Update"} product: ${name}`,
+      productsSha
+    );
+
+    if (!res.ok) {
+      const errData = await res.json();
+      throw new Error(errData.message || "Failed to save products.json");
+    }
+
+    const resData = await res.json();
+    productsSha = resData.content.sha;
+
+    closeEditor();
+    renderProducts();
+    setStatus(`✅ Product "${name}" saved! Site will rebuild automatically.`, "success");
+    setTimeout(hideStatus, 4000);
+  } catch (e) {
+    setStatus("Error: " + e.message, "error");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Save Product";
+  }
+}
+
+// ═══════════════════════════════════════════════
+// DELETE
+// ═══════════════════════════════════════════════
+async function deleteProduct(index) {
+  const p = products[index];
+  if (!confirm(`Delete "${p.name}"? This cannot be undone.`)) return;
+
+  setStatus(`Deleting "${p.name}"…`, "");
+
+  try {
+    // Delete image if exists
+    if (p.image) {
+      const imgFileName = p.image.split("/").pop();
+      const imgPath = `${IMAGES_DIR}/${imgFileName}`;
+      const imgFile = await getFile(imgPath);
+      if (imgFile) {
+        await deleteFile(imgPath, imgFile.sha, `🗑️ Delete image for ${p.name}`);
+      }
+    }
+
+    // Remove from array
+    products.splice(index, 1);
+
+    // Save products.json
+    const jsonContent = JSON.stringify(products, null, 2) + "\n";
+    const currentFile = await getFile(PRODUCTS_PATH);
+    productsSha = currentFile ? currentFile.sha : null;
+
+    const res = await putFile(
+      PRODUCTS_PATH,
+      jsonContent,
+      `🗑️ Delete product: ${p.name}`,
+      productsSha
+    );
+
+    if (!res.ok) throw new Error("Failed to update products.json");
+
+    const resData = await res.json();
+    productsSha = resData.content.sha;
+
+    renderProducts();
+    setStatus(`✅ "${p.name}" deleted. Site will rebuild automatically.`, "success");
+    setTimeout(hideStatus, 4000);
+  } catch (e) {
+    setStatus("Error: " + e.message, "error");
+  }
+}
+
+// ═══════════════════════════════════════════════
+// STATUS
+// ═══════════════════════════════════════════════
+function setStatus(msg, type) {
+  const el = document.getElementById("status-bar");
+  el.textContent = msg;
+  el.className = "status-bar" + (type ? " " + type : "");
+  el.style.display = "flex";
+}
+function hideStatus() {
+  document.getElementById("status-bar").style.display = "none";
+}
+</script>
+</body>
+</html>
