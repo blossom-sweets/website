@@ -117,7 +117,7 @@
     "id": "brownies",
     "name": "Fudgy Brownies",
     "description": "Thick fudgy brownies loaded with chocolate chunks — chewy center, crisp edges.",
-    "image": null,
+    "image": "images/products/1772386496438.jpeg",
     "options": [
       {
         "id": "large",
